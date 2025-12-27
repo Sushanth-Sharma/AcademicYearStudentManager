@@ -1,0 +1,12 @@
+<!-- Registration Page -->
+<nav style="background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.07);padding:16px 0 16px 0;margin-bottom:32px;display:flex;justify-content:center;gap:32px;border-radius:0 0 12px 12px;">
+  <a href="/">Login</a>
+  <a href="/register">Register</a>
+</nav>
+<form method="post">
+  <input name="username" placeholder="Academic Year (e.g. 2026)" required>
+  <input name="password" type="password" placeholder="Create a password" required>
+  <button type="submit">Register</button>
+</form>
+{% if error %}<p style="color:red">{{ error }}</p>{% endif %}
+{% if message %}<p style="color:green">{{ message }}</p>{% endif %}
