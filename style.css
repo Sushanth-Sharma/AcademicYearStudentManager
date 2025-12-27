@@ -1,0 +1,343 @@
+/* Student Management Portal - Enhanced Creative Design */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  color: #333;
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: white;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(45deg, #fff, #f0f8ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+/* Cards */
+.card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  padding: 40px;
+  margin-bottom: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+}
+
+.card h2 {
+  color: #2d3748;
+  font-size: 1.8rem;
+  margin-bottom: 24px;
+  font-weight: 700;
+}
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+input, select {
+  padding: 16px 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+  background: white;
+}
+
+input::placeholder {
+  color: #a0aec0;
+}
+
+/* Buttons */
+.btn {
+  padding: 16px 32px;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(102, 126, 234, 0.5);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(245, 87, 108, 0.5);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+}
+
+.btn-success:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(79, 172, 254, 0.5);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  color: #333;
+  box-shadow: 0 10px 30px rgba(250, 112, 154, 0.4);
+  font-weight: 700;
+}
+
+.btn-danger:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(250, 112, 154, 0.5);
+}
+
+/* Button Ripple Effect */
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.3);
+  transition: width 0.6s, height 0.6s, top 0.6s, left 0.6s;
+}
+
+.btn:active::before {
+  width: 300px;
+  height: 300px;
+  top: 50%;
+  left: 50%;
+  margin-left: -150px;
+  margin-top: -150px;
+}
+
+/* Table */
+.table-container {
+  overflow-x: auto;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+table {
+  width: 100%;
+  background: white;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+th {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px 24px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.2s ease;
+}
+
+tr:hover td {
+  background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+/* Messages */
+.message {
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.success {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+  color: #2d5a4a;
+  border: 1px solid rgba(168, 237, 234, 0.5);
+}
+
+.error {
+  background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+  color: #c2410c;
+  border: 1px solid rgba(252, 182, 159, 0.5);
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.link {
+  color: #4c51bf;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.link:hover {
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .card {
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  
+  th, td {
+    padding: 16px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .nav {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  table {
+    font-size: 0.85rem;
+  }
+  
+  th, td {
+    padding: 12px 8px;
+  }
+}
+
+/* Loading Animation */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8, #6b46c1);
+}
