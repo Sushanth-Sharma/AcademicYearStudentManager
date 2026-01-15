@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Student Management Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📈 Analytics Dashboard</h2>
+        <p class="card-subtitle">Comprehensive insights and performance metrics</p>
+    </div>
+</div>
+
+<!-- Overview Stats -->
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.by_course|length }}</div>
+            <div class="stat-label">Active Courses</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.attendance_rate }}%</div>
+            <div class="stat-label">Attendance Rate (30d)</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ top_performers|length }}</div>
+            <div class="stat-label">Top Performers</div>
+        </div>
+    </div>
+</div>
+
+<!-- Course Distribution -->
+{% if stats.by_course %}
+<div class="card">
+    <div class="card-header">
+        <h2>📚 Student Distribution by Course</h2>
+        <p class="card-subtitle">Enrollment across different courses</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px;">
+        {% for course in stats.by_course %}
+        <div style="padding: 24px; background: linear-gradient(135deg, #e0e7ff, #ddd6fe); border-radius: 12px; border-left: 4px solid var(--primary); transition: var(--transition);">
+            <h3 style="color: var(--primary); font-size: 1.1rem; margin-bottom: 12px;">{{ course.name }}</h3>
+            <div style="font-size: 3rem; font-weight: 800; color: var(--dark); line-height: 1;">{{ course.count }}</div>
+            <div style="font-size: 0.875rem; color: #64748b; margin-top: 8px;">
+                {{ ((course.count / stats.total_students) * 100)|round(1) }}% of total
+            </div>
+            <div style="margin-top: 16px; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; background: var(--gradient-1); width: {{ ((course.count / stats.total_students) * 100)|round(1) }}%; transition: width 0.5s;"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Attendance Trend -->
+{% if attendance_trend %}
+<div class="card">
+    <div class="card-header">
+        <h2>📅 Attendance Trend (Last 30 Days)</h2>
+        <p class="card-subtitle">Daily attendance patterns</p>
+    </div>
+    <div id="attendanceChart" style="height: 300px; display: flex; align-items: flex-end; gap: 4px; padding: 20px; background: #f8fafc; border-radius: 12px;">
+        {% for record in attendance_trend %}
+        {% set percentage = (record.present / record.total * 100) if record.total > 0 else 0 %}
+        <div style="flex: 1; min-width: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+            <div style="font-size: 0.7rem; color: #64748b; font-weight: 600;">{{ percentage|round }}%</div>
+            <div style="width: 100%; background: {% if percentage >= 80 %}linear-gradient(to top, #10b981, #34d399){% elif percentage >= 60 %}linear-gradient(to top, #f59e0b, #fbbf24){% else %}linear-gradient(to top, #ef4444, #f87171){% endif %}; border-radius: 4px 4px 0 0; height: {{ percentage * 2 }}px; min-height: 20px; transition: height 0.5s; box-shadow: 0 -2px 8px rgba(0,0,0,0.1);" title="{{ record.date }}: {{ record.present }}/{{ record.total }}"></div>
+            <div style="font-size: 0.65rem; color: #94a3b8; writing-mode: vertical-rl; transform: rotate(180deg);">{{ record.date[-5:] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    <div style="display: flex; justify-content: center; gap: 24px; margin-top: 20px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; background: linear-gradient(135deg, #10b981, #34d399); border-radius: 4px;"></div>
+            <span style="font-size: 0.875rem; color: #64748b;">≥80%</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; background: linear-gradient(135deg, #f59e0b, #fbbf24); border-radius: 4px;"></div>
+            <span style="font-size: 0.875rem; color: #64748b;">60-79%</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 16px; height: 16px; background: linear-gradient(135deg, #ef4444, #f87171); border-radius: 4px;"></div>
+            <span style="font-size: 0.875rem; color: #64748b;">&lt;60%</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top Performers -->
+{% if top_performers %}
+<div class="card">
+    <div class="card-header">
+        <h2>⭐ Top Performing Students</h2>
+        <p class="card-subtitle">Based on average marks across all subjects</p>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Rank</th>
+                    <th>Student Name</th>
+                    <th>Course</th>
+                    <th>Average Marks</th>
+                    <th>Grade</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for performer in top_performers %}
+                <tr>
+                    <td>
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: {% if loop.index == 1 %}linear-gradient(135deg, #fbbf24, #f59e0b){% elif loop.index == 2 %}linear-gradient(135deg, #d1d5db, #9ca3af){% elif loop.index == 3 %}linear-gradient(135deg, #fed7aa, #fb923c){% else %}linear-gradient(135deg, #e0e7ff, #ddd6fe){% endif %}; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; font-size: 1.2rem; box-shadow: var(--shadow-sm);">
+                            {{ loop.index }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="student-info">
+                            <div class="student-avatar">{{ performer.name[0].upper() }}</div>
+                            <span class="student-name">{{ performer.name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="course-badge">{{ performer.course_name }}</span>
+                    </td>
+                    <td>
+                        <div style="font-size: 1.5rem; font-weight: 700; {% if performer.avg_marks >= 90 %}color: #10b981;{% elif performer.avg_marks >= 75 %}color: #3b82f6;{% elif performer.avg_marks >= 60 %}color: #f59e0b;{% else %}color: #ef4444;{% endif %}">
+                            {{ performer.avg_marks|round(1) }}%
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge" style="{% if performer.avg_marks >= 90 %}background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46;{% elif performer.avg_marks >= 75 %}background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af;{% elif performer.avg_marks >= 60 %}background: linear-gradient(135deg, #fef08a, #fde047); color: #854d0e;{% elif performer.avg_marks >= 50 %}background: linear-gradient(135deg, #fed7aa, #fdba74); color: #9a3412;{% else %}background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b;{% endif %}">
+                            {% if performer.avg_marks >= 90 %}A+{% elif performer.avg_marks >= 80 %}A{% elif performer.avg_marks >= 70 %}B+{% elif performer.avg_marks >= 60 %}B{% elif performer.avg_marks >= 50 %}C{% else %}D{% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Subject Performance -->
+{% if subject_performance %}
+<div class="card">
+    <div class="card-header">
+        <h2>📊 Subject-wise Performance</h2>
+        <p class="card-subtitle">Average marks across different subjects</p>
+    </div>
+    <div style="display: grid; gap: 16px;">
+        {% for subject in subject_performance %}
+        <div style="padding: 20px; background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 12px; border-left: 4px solid {% if subject.avg_marks >= 80 %}#10b981{% elif subject.avg_marks >= 60 %}#f59e0b{% else %}#ef4444{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="color: var(--dark); font-size: 1.1rem;">{{ subject.subject }}</h3>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.8rem; font-weight: 800; {% if subject.avg_marks >= 80 %}color: #10b981;{% elif subject.avg_marks >= 60 %}color: #f59e0b;{% else %}color: #ef4444;{% endif %}">
+                        {{ subject.avg_marks|round(1) }}%
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b;">{{ subject.count }} record{% if subject.count != 1 %}s{% endif %}</div>
+                </div>
+            </div>
+            <div style="height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden;">
+                <div style="height: 100%; background: {% if subject.avg_marks >= 80 %}linear-gradient(90deg, #10b981, #34d399){% elif subject.avg_marks >= 60 %}linear-gradient(90deg, #f59e0b, #fbbf24){% else %}linear-gradient(90deg, #ef4444, #f87171){% endif %}; width: {{ subject.avg_marks }}%; transition: width 0.8s; border-radius: 6px;"></div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Export and Actions -->
+<div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));">
+    <h3 style="margin-bottom: 20px;">📥 Export Analytics</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="{{ url_for('export_students') }}" class="btn btn-primary">
+            👥 Export Students List
+        </a>
+        <a href="{{ url_for('export_attendance') }}" class="btn btn-primary">
+            📅 Export Attendance Records
+        </a>
+        <button onclick="printReport()" class="btn btn-secondary">
+            🖨️ Print Report
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function printReport() {
+    window.print();
+}
+
+// Animate progress bars on load
+window.addEventListener('load', () => {
+    const bars = document.querySelectorAll('div[style*="width:"][style*="%"]');
+    bars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 100);
+    });
+});
+
+// Add hover effects to charts
+document.querySelectorAll('#attendanceChart > div').forEach(bar => {
+    bar.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.05)';
+        this.style.zIndex = '10';
+    });
+    bar.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+        this.style.zIndex = '1';
+    });
+});
+</script>
+{% endblock %}

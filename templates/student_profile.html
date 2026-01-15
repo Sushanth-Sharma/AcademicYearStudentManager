@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student.name }} - Profile{% endblock %}
+
+{% block content %}
+<!-- Student Header -->
+<div class="card" style="background: var(--gradient-1); color: white;">
+    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+        <div style="width: 120px; height: 120px; border-radius: 50%; background: white; color: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 3rem; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+            {{ student.name[0].upper() }}
+        </div>
+        <div style="flex: 1; min-width: 200px;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 8px;">{{ student.name }}</h1>
+            <div style="display: flex; gap: 16px; flex-wrap: wrap; font-size: 1.1rem; opacity: 0.95;">
+                <span>📚 {{ student.course_name or 'No Course' }}</span>
+                <span>🆔 Student ID: #{{ student.id }}</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <a href="{{ url_for('edit_student', id=student.id) }}" class="btn" style="background: white; color: var(--primary);">
+                ✏️ Edit
+            </a>
+            <a href="{{ url_for('dashboard') }}" class="btn" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+                ← Back
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ attendance_summary.percentage }}%</div>
+            <div class="stat-label">Attendance Rate</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">✓</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ attendance_summary.present }}</div>
+            <div class="stat-label">Days Present</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">✕</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ attendance_summary.absent }}</div>
+            <div class="stat-label">Days Absent</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ marks_summary|length }}</div>
+            <div class="stat-label">Subjects</div>
+        </div>
+    </div>
+</div>
+
+<!-- Two Column Layout -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 24px;">
+    <!-- Attendance Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📅 Recent Attendance</h2>
+            <p class="card-subtitle">Last 10 records</p>
+        </div>
+        
+        {% if attendance %}
+        <div style="display: grid; gap: 12px;">
+            {% for record in attendance %}
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: {% if record.present == 1 %}linear-gradient(135deg, #d1fae5, #a7f3d0){% else %}linear-gradient(135deg, #fee2e2, #fecaca){% endif %}; border-radius: 12px;">
+                <div>
+                    <div style="font-weight: 600; color: {% if record.present == 1 %}#065f46{% else %}#991b1b{% endif %};">
+                        {{ record.date }}
+                    </div>
+                    <div style="font-size: 0.875rem; color: {% if record.present == 1 %}#047857{% else %}#b91c1c{% endif %};">
+                        {{ record.date | dateformat if record.date else 'N/A' }}
+                    </div>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700;">
+                    {% if record.present == 1 %}✓{% else %}✕{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="{{ url_for('attendance_page') }}" class="btn btn-primary">
+                View All Attendance →
+            </a>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon" style="font-size: 3rem;">📅</div>
+            <p>No attendance records yet</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Marks Section -->
+    <div class="card">
+        <div class="card-header">
+            <h2>📊 Academic Performance</h2>
+            <p class="card-subtitle">Subject-wise marks overview</p>
+        </div>
+        
+        {% if marks_summary %}
+        <div style="display: grid; gap: 16px;">
+            {% for subject, data in marks_summary.items() %}
+            <div style="padding: 20px; background: linear-gradient(90deg, #f8fafc, #f1f5f9); border-radius: 12px; border-left: 4px solid {% if data.average >= 80 %}#10b981{% elif data.average >= 60 %}#f59e0b{% else %}#ef4444{% endif %};">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h3 style="color: var(--dark); font-size: 1rem;">{{ subject }}</h3>
+                    <span style="font-size: 1.8rem; font-weight: 800; {% if data.average >= 80 %}color: #10b981;{% elif data.average >= 60 %}color: #f59e0b;{% else %}color: #ef4444;{% endif %}">
+                        {{ data.average }}%
+                    </span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 0.875rem;">
+                    <div>
+                        <span style="color: #64748b;">Highest:</span>
+                        <strong style="color: #10b981;">{{ data.highest }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b;">Lowest:</span>
+                        <strong style="color: #ef4444;">{{ data.lowest }}</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b;">Tests:</span>
+                        <strong>{{ data.count }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="{{ url_for('marks_page') }}" class="btn btn-primary">
+                View All Marks →
+            </a>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon" style="font-size: 3rem;">📊</div>
+            <p>No marks recorded yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Recent Marks Table -->
+{% if marks %}
+<div class="card">
+    <div class="card-header">
+        <h2>📝 Recent Test Scores</h2>
+        <p class="card-subtitle">Latest 10 marks entries</p>
+    </div>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Marks</th>
+                    <th>Grade</th>
+                    <th>Performance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mark in marks %}
+                <tr>
+                    <td><strong>{{ mark.subject }}</strong></td>
+                    <td>
+                        <div style="font-size: 1.3rem; font-weight: 700; {% if mark.marks >= 80 %}color: #10b981;{% elif mark.marks >= 60 %}color: #f59e0b;{% else %}color: #ef4444;{% endif %}">
+                            {{ mark.marks }}
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge" style="{% if mark.marks >= 90 %}background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46;{% elif mark.marks >= 75 %}background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1e40af;{% elif mark.marks >= 60 %}background: linear-gradient(135deg, #fef08a, #fde047); color: #854d0e;{% else %}background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b;{% endif %}">
+                            {% if mark.marks >= 90 %}A+{% elif mark.marks >= 80 %}A{% elif mark.marks >= 70 %}B+{% elif mark.marks >= 60 %}B{% elif mark.marks >= 50 %}C{% else %}D{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; width: 100%; max-width: 200px;">
+                            <div style="height: 100%; background: {% if mark.marks >= 80 %}#10b981{% elif mark.marks >= 60 %}#f59e0b{% else %}#ef4444{% endif %}; width: {{ mark.marks }}%; transition: width 0.5s;"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Actions -->
+<div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));">
+    <h3 style="margin-bottom: 20px;">⚡ Quick Actions</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="{{ url_for('edit_student', id=student.id) }}" class="btn btn-primary">
+            ✏️ Edit Student Info
+        </a>
+        <a href="{{ url_for('attendance_page') }}" class="btn btn-secondary">
+            📅 Mark Attendance
+        </a>
+        <a href="{{ url_for('marks_page') }}" class="btn btn-success">
+            📊 Add Marks
+        </a>
+        <a href="{{ url_for('delete_student', id=student.id) }}" 
+           class="btn" 
+           style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white;"
+           onclick="return confirm('⚠️ Are you sure you want to delete {{ student.name }}?\n\nThis will permanently delete all attendance and marks records!');">
+            🗑️ Delete Student
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Animate progress bars
+window.addEventListener('load', () => {
+    const bars = document.querySelectorAll('div[style*="width:"][style*="%"]');
+    bars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 200);
+    });
+});
+</script>
+{% endblock %}

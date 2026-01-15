@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Management Portal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📚 Student Management Portal</h1>
+            <p>{% block subtitle %}Manage your students efficiently and effectively{% endblock %}</p>
+        </div>
+
+        <!-- Navigation -->
+        {% if session.user %}
+        <div class="card nav-card">
+            <nav class="nav">
+                <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    <span class="nav-icon">🏠</span> Dashboard
+                </a>
+                <a href="{{ url_for('add_student') }}" class="nav-link {% if request.endpoint == 'add_student' %}active{% endif %}">
+                    <span class="nav-icon">➕</span> Add Student
+                </a>
+                <a href="{{ url_for('attendance_page') }}" class="nav-link {% if request.endpoint == 'attendance_page' %}active{% endif %}">
+                    <span class="nav-icon">📅</span> Attendance
+                </a>
+                <a href="{{ url_for('marks_page') }}" class="nav-link {% if request.endpoint == 'marks_page' %}active{% endif %}">
+                    <span class="nav-icon">📊</span> Marks
+                </a>
+                <a href="{{ url_for('analytics_page') }}" class="nav-link {% if request.endpoint == 'analytics_page' %}active{% endif %}">
+                    <span class="nav-icon">📈</span> Analytics
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-link">
+                    <span class="nav-icon">🚪</span> Logout
+                </a>
+            </nav>
+            <div style="text-align: center; margin-top: 12px; color: #64748b; font-size: 0.9rem;">
+                Logged in as: <strong>{{ session.user }}</strong>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages-container">
+                    {% for category, message in messages %}
+                        <div class="message {{ category }}">
+                            <span class="message-icon">
+                                {% if category == 'success' %}✓{% elif category == 'error' %}✕{% else %}ℹ{% endif %}
+                            </span>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main Content -->
+        {% block content %}{% endblock %}
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2026 Student Management Portal | Academic Year: {{ session.user or 'Guest' }}</p>
+            <div class="footer-links">
+                <a href="#">Help</a>
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_scripts %}{% endblock %}
+    
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

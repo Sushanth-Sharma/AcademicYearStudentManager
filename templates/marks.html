@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}Marks - Student Management Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📊 Manage Student Marks</h2>
+        <p class="card-subtitle">Add and view student performance</p>
+    </div>
+    
+    {% if students %}
+    <!-- Add Marks Form -->
+    <div style="padding: 24px; background: linear-gradient(135deg, #e0f2fe, #dbeafe); border-radius: 12px; margin-bottom: 32px;">
+        <h3 style="margin-bottom: 20px; color: #0369a1;">➕ Add New Marks</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <select id="studentSelect" style="grid-column: span 2;">
+                <option value="">Select Student</option>
+                {% for student in students %}
+                    <option value="{{ student.id }}">{{ student.name }} - {{ student.course_name }}</option>
+                {% endfor %}
+            </select>
+            
+            <input 
+                type="text" 
+                id="subjectInput" 
+                placeholder="Subject (e.g., Mathematics)"
+                list="subjectsList"
+            >
+            <datalist id="subjectsList">
+                <option value="Mathematics">
+                <option value="Science">
+                <option value="English">
+                <option value="History">
+                <option value="Geography">
+                <option value="Physics">
+                <option value="Chemistry">
+                <option value="Biology">
+            </datalist>
+            
+            <input 
+                type="number" 
+                id="marksInput" 
+                placeholder="Marks (0-100)"
+                min="0"
+                max="100"
+            >
+            
+            <button onclick="addMarks()" class="btn btn-primary">
+                ✓ Add Marks
+            </button>
+        </div>
+    </div>
+    
+    <!-- Students Marks Table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Recent Marks</th>
+                    <th>Average</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>
+                        <div class="student-info">
+                            <div class="student-avatar">{{ student.name[0].upper() }}</div>
+                            <span class="student-name">{{ student.name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="course-badge">{{ student.course_name or 'N/A' }}</span>
+                    </td>
+                    <td>
+                        {% set marks_list = student_marks.get(student.id, []) %}
+                        {% if marks_list %}
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                {% for mark in marks_list[:5] %}
+                                <span class="badge" style="{% if mark.marks >= 80 %}background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #065f46;{% elif mark.marks >= 60 %}background: linear-gradient(135deg, #fef08a, #fde047); color: #854d0e;{% else %}background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b;{% endif %}">
+                                    {{ mark.subject }}: {{ mark.marks }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <span style="color: #94a3b8; font-style: italic;">No marks recorded</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if marks_list %}
+                            {% set avg = (marks_list|sum(attribute='marks') / marks_list|length)|round(1) %}
+                            <div style="font-size: 1.5rem; font-weight: 700; {% if avg >= 80 %}color: #10b981;{% elif avg >= 60 %}color: #f59e0b;{% else %}color: #ef4444;{% endif %}">
+                                {{ avg }}%
+                            </div>
+                        {% else %}
+                            <span style="color: #94a3b8;">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <button onclick="viewDetails({{ student.id }}, '{{ student.name }}')" class="btn btn-action btn-primary">
+                            👁️ View All
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>No students available</h3>
+        <p>Add students to start recording marks</p>
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+            ➕ Add Student
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Performance Summary -->
+{% if students %}
+<div class="card">
+    <div class="card-header">
+        <h2>📈 Performance Overview</h2>
+        <p class="card-subtitle">Class performance statistics</p>
+    </div>
+    <div id="performanceSummary"></div>
+</div>
+{% endif %}
+
+<!-- Modal for viewing all marks -->
+<div id="marksModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 20px; overflow-y: auto;">
+    <div style="max-width: 800px; margin: 40px auto; background: white; border-radius: 16px; padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 id="modalTitle">Student Marks</h2>
+            <button onclick="closeModal()" style="background: none; border: none; font-size: 2rem; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const studentMarks = {{ student_marks|tojson }};
+
+async function addMarks() {
+    const studentId = document.getElementById('studentSelect').value;
+    const subject = document.getElementById('subjectInput').value.trim();
+    const marks = document.getElementById('marksInput').value;
+    
+    if (!studentId || !subject || !marks) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    if (marks < 0 || marks > 100) {
+        alert('Marks must be between 0 and 100');
+        return;
+    }
+    
+    try {
+        const response = await fetch('{{ url_for("add_marks_route") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                student_id: parseInt(studentId),
+                subject: subject,
+                marks: parseFloat(marks)
+            })
+        });
+        
+        if (response.ok) {
+            showToast('Marks added successfully! ✓');
+            // Clear form
+            document.getElementById('studentSelect').value = '';
+            document.getElementById('subjectInput').value = '';
+            document.getElementById('marksInput').value = '';
+            // Reload page to show new marks
+            setTimeout(() => window.location.reload(), 1000);
+        } else {
+            showToast('Error adding marks', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error adding marks', 'error');
+    }
+}
+
+function viewDetails(studentId, studentName) {
+    const marks = studentMarks[studentId] || [];
+    const modal = document.getElementById('marksModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalContent = document.getElementById('modalContent');
+    
+    modalTitle.textContent = `📊 ${studentName}'s Marks`;
+    
+    if (marks.length === 0) {
+        modalContent.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #64748b;">
+                <div style="font-size: 3rem; margin-bottom: 16px;">📝</div>
+                <p>No marks recorded yet for this student</p>
+            </div>
+        `;
+    } else {
+        // Group marks by subject
+        const bySubject = {};
+        marks.forEach(mark => {
+            if (!bySubject[mark.subject]) {
+                bySubject[mark.subject] = [];
+            }
+            bySubject[mark.subject].push(mark.marks);
+        });
+        
+        let html = '<div style="display: grid; gap: 16px;">';
+        
+        for (const [subject, scores] of Object.entries(bySubject)) {
+            const avg = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+            const max = Math.max(...scores);
+            const min = Math.min(...scores);
+            
+            html += `
+                <div style="padding: 20px; background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 12px; border-left: 4px solid var(--primary);">
+                    <h3 style="margin-bottom: 12px; color: var(--dark);">${subject}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                        <div>
+                            <div style="font-size: 0.875rem; color: #64748b;">Average</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">${avg}%</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: #64748b;">Highest</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #10b981;">${max}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.875rem; color: #64748b;">Lowest</div>
+                            <div style="font-size: 1.5rem; font-weight: 700; color: #ef4444;">${min}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.875rem; color: #64748b;">
+                        All scores: ${scores.join(', ')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += '</div>';
+        modalContent.innerHTML = html;
+    }
+    
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('marksModal').style.display = 'none';
+}
+
+// Close modal on outside click
+document.getElementById('marksModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `message ${type}`;
+    toast.innerHTML = `
+        <span class="message-icon">${type === 'success' ? '✓' : '✕'}</span>
+        <span>${message}</span>
+    `;
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '1000';
+    toast.style.minWidth = '250px';
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
+// Enter key to add marks
+document.getElementById('marksInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        addMarks();
+    }
+});
+
+// Calculate and display performance summary
+window.addEventListener('load', function() {
+    const summary = document.getElementById('performanceSummary');
+    if (!summary) return;
+    
+    let totalStudents = 0;
+    let studentsWithMarks = 0;
+    let totalAverage = 0;
+    
+    for (const [studentId, marks] of Object.entries(studentMarks)) {
+        totalStudents++;
+        if (marks.length > 0) {
+            studentsWithMarks++;
+            const avg = marks.reduce((sum, m) => sum + m.marks, 0) / marks.length;
+            totalAverage += avg;
+        }
+    }
+    
+    const classAverage = studentsWithMarks > 0 ? (totalAverage / studentsWithMarks).toFixed(1) : 0;
+    
+    summary.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <div style="padding: 24px; background: linear-gradient(135deg, #e0e7ff, #ddd6fe); border-radius: 12px; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">${classAverage}%</div>
+                <div style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">Class Average</div>
+            </div>
+            <div style="padding: 24px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 700; color: #065f46;">${studentsWithMarks}</div>
+                <div style="font-size: 0.875rem; color: #047857; margin-top: 4px;">Students Evaluated</div>
+            </div>
+            <div style="padding: 24px; background: linear-gradient(135deg, #fef08a, #fde047); border-radius: 12px; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 700; color: #854d0e;">${totalStudents - studentsWithMarks}</div>
+                <div style="font-size: 0.875rem; color: #a16207; margin-top: 4px;">Pending Evaluation</div>
+            </div>
+        </div>
+    `;
+});
+</script>
+{% endblock %}

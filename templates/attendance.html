@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance - Student Management Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>📅 Mark Attendance</h2>
+        <p class="card-subtitle">Record student attendance for the day</p>
+    </div>
+    
+    <!-- Date Selector -->
+    <div style="margin-bottom: 32px;">
+        <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #334155;">
+            📆 Select Date
+        </label>
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <input 
+                type="date" 
+                id="attendanceDate" 
+                value="{{ date }}"
+                style="flex: 1; min-width: 200px;"
+            >
+            <button onclick="changeDate()" class="btn btn-primary">
+                🔄 Load Attendance
+            </button>
+            <button onclick="setToday()" class="btn btn-secondary">
+                📅 Today
+            </button>
+            <button onclick="markAllPresent()" class="btn btn-success">
+                ✓ Mark All Present
+            </button>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 32px;">
+        <div style="padding: 16px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #065f46;">
+                <span id="presentCount">0</span>
+            </div>
+            <div style="font-size: 0.875rem; color: #047857;">Present</div>
+        </div>
+        <div style="padding: 16px; background: linear-gradient(135deg, #fee2e2, #fecaca); border-radius: 12px; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #991b1b;">
+                <span id="absentCount">0</span>
+            </div>
+            <div style="font-size: 0.875rem; color: #b91c1c;">Absent</div>
+        </div>
+        <div style="padding: 16px; background: linear-gradient(135deg, #e0e7ff, #ddd6fe); border-radius: 12px; text-align: center;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #5b21b6;">
+                <span id="totalCount">{{ students|length }}</span>
+            </div>
+            <div style="font-size: 0.875rem; color: #6b21a8;">Total</div>
+        </div>
+    </div>
+    
+    {% if students %}
+    <!-- Attendance List -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 80px;">ID</th>
+                    <th>Student Name</th>
+                    <th>Course</th>
+                    <th style="width: 200px;">Status</th>
+                </tr>
+            </thead>
+            <tbody id="attendanceTable">
+                {% for student in students %}
+                <tr data-student-id="{{ student.id }}">
+                    <td>
+                        <span class="badge">#{{ student.id }}</span>
+                    </td>
+                    <td>
+                        <div class="student-info">
+                            <div class="student-avatar">{{ student.name[0].upper() }}</div>
+                            <span class="student-name">{{ student.name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="course-badge">{{ student.course_name or 'N/A' }}</span>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <button 
+                                onclick="markAttendance({{ student.id }}, 1)" 
+                                class="btn btn-action {% if attendance_records.get(student.id) == 1 %}btn-success{% endif %}"
+                                id="present-{{ student.id }}"
+                                style="flex: 1;">
+                                ✓ Present
+                            </button>
+                            <button 
+                                onclick="markAttendance({{ student.id }}, 0)" 
+                                class="btn btn-action {% if attendance_records.get(student.id) == 0 %}btn-delete{% endif %}"
+                                id="absent-{{ student.id }}"
+                                style="flex: 1;">
+                                ✕ Absent
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>No students available</h3>
+        <p>Add students to start marking attendance</p>
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+            ➕ Add Student
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Export Options -->
+{% if students %}
+<div class="card" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));">
+    <h3 style="margin-bottom: 16px;">📥 Export Options</h3>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="{{ url_for('export_attendance') }}" class="btn btn-primary">
+            📊 Export All Attendance Records
+        </a>
+        <button onclick="exportToday()" class="btn btn-secondary">
+            📅 Export Today's Attendance
+        </button>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const currentDate = "{{ date }}";
+const attendanceRecords = {{ attendance_records|tojson }};
+
+// Update counts on page load
+updateCounts();
+
+function changeDate() {
+    const date = document.getElementById('attendanceDate').value;
+    window.location.href = `{{ url_for('attendance_page') }}?date=${date}`;
+}
+
+function setToday() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('attendanceDate').value = today;
+    changeDate();
+}
+
+async function markAttendance(studentId, present) {
+    const date = document.getElementById('attendanceDate').value;
+    
+    try {
+        const response = await fetch('{{ url_for("mark_attendance_route") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                date: date,
+                present: present
+            })
+        });
+        
+        if (response.ok) {
+            // Update button styles
+            const presentBtn = document.getElementById(`present-${studentId}`);
+            const absentBtn = document.getElementById(`absent-${studentId}`);
+            
+            if (present === 1) {
+                presentBtn.classList.add('btn-success');
+                absentBtn.classList.remove('btn-delete');
+            } else {
+                absentBtn.classList.add('btn-delete');
+                presentBtn.classList.remove('btn-success');
+            }
+            
+            // Update attendance records
+            attendanceRecords[studentId] = present;
+            updateCounts();
+            
+            // Show success feedback
+            showToast(present === 1 ? 'Marked as Present ✓' : 'Marked as Absent ✕');
+        } else {
+            showToast('Error marking attendance', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Error marking attendance', 'error');
+    }
+}
+
+function markAllPresent() {
+    if (!confirm('Mark all students as present for this date?')) return;
+    
+    const rows = document.querySelectorAll('#attendanceTable tr');
+    rows.forEach(row => {
+        const studentId = row.dataset.studentId;
+        if (studentId) {
+            markAttendance(parseInt(studentId), 1);
+        }
+    });
+}
+
+function updateCounts() {
+    let present = 0, absent = 0;
+    
+    Object.values(attendanceRecords).forEach(status => {
+        if (status === 1) present++;
+        else if (status === 0) absent++;
+    });
+    
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent = absent;
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `message ${type}`;
+    toast.innerHTML = `
+        <span class="message-icon">${type === 'success' ? '✓' : '✕'}</span>
+        <span>${message}</span>
+    `;
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.zIndex = '1000';
+    toast.style.minWidth = '250px';
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
+function exportToday() {
+    const date = document.getElementById('attendanceDate').value;
+    alert(`Export functionality for ${date} - Feature coming soon!`);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        setToday();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,151 @@
+<!-- register.html -->
+{% extends "base.html" %}
+
+{% block title %}Register - Student Management Portal{% endblock %}
+
+{% block subtitle %}Create a new account for your academic year{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto;">
+    <div class="card-header" style="text-align: center;">
+        <div style="font-size: 4rem; margin-bottom: 16px;">✨</div>
+        <h2>Create New Account</h2>
+        <p class="card-subtitle">Register your academic year</p>
+    </div>
+    
+    <form method="post" id="registerForm">
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Academic Year / Username <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                name="username" 
+                placeholder="e.g., 2026, 2027..."
+                required
+                autofocus
+                autocomplete="username"
+                pattern="[0-9]{4}"
+                title="Please enter a 4-digit year"
+            >
+            <div style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">
+                Enter a 4-digit academic year (e.g., 2026)
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Password <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                name="password" 
+                type="password" 
+                placeholder="Create a strong password"
+                required
+                autocomplete="new-password"
+                minlength="6"
+                id="password"
+            >
+            <div style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">
+                Minimum 6 characters
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Confirm Password <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                name="confirm_password" 
+                type="password" 
+                placeholder="Re-enter your password"
+                required
+                autocomplete="new-password"
+                minlength="6"
+                id="confirmPassword"
+            >
+        </div>
+        
+        <div id="passwordError" style="display: none; padding: 12px; background: #fee2e2; color: #991b1b; border-radius: 8px; margin-bottom: 16px; font-size: 0.875rem;">
+            Passwords do not match!
+        </div>
+        
+        <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 24px;">
+            🎉 Create Account
+        </button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 2px solid #e2e8f0;">
+        <p style="color: #64748b; margin-bottom: 12px;">Already have an account?</p>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary" style="width: 100%;">
+            🔐 Login Instead
+        </a>
+    </div>
+    
+    <!-- Registration Info -->
+    <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, #d1fae5, #a7f3d0); border-radius: 12px; border-left: 4px solid #10b981;">
+        <h4 style="color: #065f46; margin-bottom: 12px; font-size: 1rem;">✅ What You'll Get</h4>
+        <ul style="font-size: 0.875rem; color: #047857; list-style: none; padding: 0;">
+            <li style="margin-bottom: 8px;">✓ Separate student database for your year</li>
+            <li style="margin-bottom: 8px;">✓ Attendance tracking system</li>
+            <li style="margin-bottom: 8px;">✓ Marks management</li>
+            <li style="margin-bottom: 8px;">✓ Analytics and reporting</li>
+            <li>✓ Export capabilities</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const form = document.getElementById('registerForm');
+const password = document.getElementById('password');
+const confirmPassword = document.getElementById('confirmPassword');
+const passwordError = document.getElementById('passwordError');
+
+form.addEventListener('submit', function(e) {
+    if (password.value !== confirmPassword.value) {
+        e.preventDefault();
+        passwordError.style.display = 'block';
+        confirmPassword.focus();
+        return false;
+    }
+    passwordError.style.display = 'none';
+});
+
+confirmPassword.addEventListener('input', function() {
+    if (this.value && this.value !== password.value) {
+        passwordError.style.display = 'block';
+    } else {
+        passwordError.style.display = 'none';
+    }
+});
+
+// Password strength indicator
+password.addEventListener('input', function() {
+    const strength = this.value.length;
+    const strengthBar = document.getElementById('strengthBar');
+    
+    if (!strengthBar) {
+        const bar = document.createElement('div');
+        bar.id = 'strengthBar';
+        bar.style.height = '4px';
+        bar.style.marginTop = '8px';
+        bar.style.borderRadius = '2px';
+        bar.style.transition = 'all 0.3s';
+        this.parentElement.appendChild(bar);
+    }
+    
+    const strengthBar2 = document.getElementById('strengthBar');
+    if (strength < 6) {
+        strengthBar2.style.width = '33%';
+        strengthBar2.style.background = '#ef4444';
+    } else if (strength < 10) {
+        strengthBar2.style.width = '66%';
+        strengthBar2.style.background = '#f59e0b';
+    } else {
+        strengthBar2.style.width = '100%';
+        strengthBar2.style.background = '#10b981';
+    }
+});
+</script>
+{% endblock %}

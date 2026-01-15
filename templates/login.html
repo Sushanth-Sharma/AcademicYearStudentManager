@@ -1,0 +1,75 @@
+<!-- login.html -->
+{% extends "base.html" %}
+
+{% block title %}Login - Student Management Portal{% endblock %}
+
+{% block subtitle %}Welcome back! Please login to continue{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto;">
+    <div class="card-header" style="text-align: center;">
+        <div style="font-size: 4rem; margin-bottom: 16px;">🔐</div>
+        <h2>Login to Your Account</h2>
+        <p class="card-subtitle">Enter your academic year credentials</p>
+    </div>
+    
+    <form method="post">
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Academic Year / Username
+            </label>
+            <input 
+                name="username" 
+                placeholder="e.g., 2023, 2024, 2025..." 
+                required
+                autofocus
+                autocomplete="username"
+            >
+        </div>
+        
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Password
+            </label>
+            <input 
+                name="password" 
+                type="password" 
+                placeholder="Enter your password"
+                required
+                autocomplete="current-password"
+            >
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 24px;">
+            🚀 Login
+        </button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 24px; padding-top: 24px; border-top: 2px solid #e2e8f0;">
+        <p style="color: #64748b; margin-bottom: 12px;">Don't have an account?</p>
+        <a href="{{ url_for('register') }}" class="btn btn-secondary" style="width: 100%;">
+            ✨ Register New Academic Year
+        </a>
+    </div>
+    
+    <!-- Quick Login Info -->
+    <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, #e0f2fe, #dbeafe); border-radius: 12px; border-left: 4px solid #3b82f6;">
+        <h4 style="color: #1e40af; margin-bottom: 12px; font-size: 1rem;">💡 Default Login Credentials</h4>
+        <div style="font-size: 0.875rem; color: #0369a1;">
+            <p style="margin-bottom: 8px;"><strong>Username:</strong> 2023, 2024, 2025</p>
+            <p><strong>Password:</strong> 2023pass, 2024pass, 2025pass</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Add enter key support
+document.querySelector('form').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.target.form.submit();
+    }
+});
+</script>
+{% endblock %}

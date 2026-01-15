@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Student Management Portal{% endblock %}
+
+{% block content %}
+<!-- Statistics Cards -->
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">📚</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.by_course|length }}</div>
+            <div class="stat-label">Active Courses</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ stats.attendance_rate }}%</div>
+            <div class="stat-label">Attendance Rate</div>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-content">
+            <div class="stat-value">{{ session.user }}</div>
+            <div class="stat-label">Academic Year</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card">
+    <form method="get" action="{{ url_for('dashboard') }}" class="search-form">
+        <div class="search-container">
+            <input 
+                type="text" 
+                name="q" 
+                value="{{ q }}" 
+                placeholder="🔍 Search by student name..." 
+                class="search-input"
+            >
+            
+            <select name="course" style="min-width: 200px;">
+                <option value="">All Courses</option>
+                {% for course in courses %}
+                    <option value="{{ course.id }}" {% if course_filter == course.id|string %}selected{% endif %}>
+                        {{ course.name }}
+                    </option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn btn-primary">
+                🔍 Search
+            </button>
+            
+            {% if q or course_filter %}
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">
+                ✕ Clear
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<!-- Quick Actions -->
+<div class="card quick-actions-card">
+    <h3>⚡ Quick Actions</h3>
+    <div class="quick-actions">
+        <a href="{{ url_for('add_student') }}" class="quick-action-btn">
+            <span class="action-icon">➕</span>
+            <span class="action-text">Add Student</span>
+        </a>
+        <a href="{{ url_for('attendance_page') }}" class="quick-action-btn">
+            <span class="action-icon">📅</span>
+            <span class="action-text">Mark Attendance</span>
+        </a>
+        <a href="{{ url_for('marks_page') }}" class="quick-action-btn">
+            <span class="action-icon">📝</span>
+            <span class="action-text">Add Marks</span>
+        </a>
+        <a href="{{ url_for('analytics_page') }}" class="quick-action-btn">
+            <span class="action-icon">📈</span>
+            <span class="action-text">View Analytics</span>
+        </a>
+        <a href="{{ url_for('export_students') }}" class="quick-action-btn">
+            <span class="action-icon">📥</span>
+            <span class="action-text">Export Data</span>
+        </a>
+    </div>
+</div>
+
+<!-- Students Table -->
+<div class="card">
+    <div class="card-header">
+        <h2>📋 Students List</h2>
+        <p class="card-subtitle">
+            {% if q %}
+                Search results for "{{ q }}" - 
+            {% endif %}
+            Showing {{ students|length }} student{% if students|length != 1 %}s{% endif %}
+        </p>
+    </div>
+    
+    {% if students %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>
+                        <span class="badge">#{{ student.id }}</span>
+                    </td>
+                    <td>
+                        <div class="student-info">
+                            <div class="student-avatar">
+                                {{ student.name[0].upper() }}
+                            </div>
+                            <span class="student-name">
+                                {% if q and q in student.name %}
+                                    {{ student.name|replace(q, '<mark>' + q + '</mark>')|safe }}
+                                {% else %}
+                                    {{ student.name }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="course-badge">{{ student.course_name or 'N/A' }}</span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ url_for('student_profile', id=student.id) }}" class="btn btn-action btn-primary" title="View Profile">
+                                👁️ View
+                            </a>
+                            <a href="{{ url_for('edit_student', id=student.id) }}" class="btn btn-action btn-edit" title="Edit">
+                                ✏️ Edit
+                            </a>
+                            <a href="{{ url_for('delete_student', id=student.id) }}" 
+                               class="btn btn-action btn-delete" 
+                               title="Delete"
+                               onclick="return confirm('⚠️ Are you sure you want to delete {{ student.name }}?\n\nThis will also delete all attendance and marks records!');">
+                                🗑️ Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📚</div>
+        <h3>No students found</h3>
+        <p>
+            {% if q or course_filter %}
+                Try adjusting your search or filters
+            {% else %}
+                Get started by adding your first student
+            {% endif %}
+        </p>
+        {% if not q and not course_filter %}
+        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+            ➕ Add Your First Student
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Course Distribution -->
+{% if stats.by_course %}
+<div class="card">
+    <div class="card-header">
+        <h2>📊 Students by Course</h2>
+        <p class="card-subtitle">Distribution across courses</p>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+        {% for course in stats.by_course %}
+        <div style="padding: 16px; background: linear-gradient(135deg, #e0e7ff, #ddd6fe); border-radius: 12px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">
+                {{ course.count }}
+            </div>
+            <div style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">
+                {{ course.name }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-focus search input if 'q' parameter exists
+    {% if q %}
+    document.querySelector('input[name="q"]').focus();
+    {% endif %}
+    
+    // Confirm before deleting multiple students
+    const deleteLinks = document.querySelectorAll('a[href*="/delete/"]');
+    deleteLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!confirm(`Are you sure you want to delete this student? This action cannot be undone.`)) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

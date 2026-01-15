@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Student - Student Management Portal{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+        <h2>✏️ Edit Student</h2>
+        <p class="card-subtitle">Update student information</p>
+    </div>
+    
+    <form method="post">
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Student Full Name <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                name="name" 
+                value="{{ student.name }}"
+                placeholder="Enter student's full name" 
+                required
+                autofocus
+            >
+        </div>
+        
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Select Course <span style="color: #ef4444;">*</span>
+            </label>
+            <select name="course_id" required>
+                <option value="">-- Choose a Course --</option>
+                {% for course in courses %}
+                    <option value="{{ course.id }}" {% if course.id == student.course_id %}selected{% endif %}>
+                        {{ course.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 200px;">
+                ✓ Update Student
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="flex: 1; min-width: 200px;">
+                ✕ Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

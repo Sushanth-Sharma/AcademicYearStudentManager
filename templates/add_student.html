@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Add Student - Student Management Portal{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <div class="card-header">
+        <h2>➕ Add New Student</h2>
+        <p class="card-subtitle">Enter student details to add to your database</p>
+    </div>
+    
+    <form method="post" id="addStudentForm">
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Student Full Name <span style="color: #ef4444;">*</span>
+            </label>
+            <input 
+                name="name" 
+                placeholder="Enter student's full name" 
+                required
+                autofocus
+                autocomplete="name"
+                id="studentName"
+            >
+            <div style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">
+                Enter first name and last name
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 8px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
+                Select Course <span style="color: #ef4444;">*</span>
+            </label>
+            <select name="course_id" required id="courseSelect">
+                <option value="">-- Choose a Course --</option>
+                {% for course in courses %}
+                    <option value="{{ course.id }}">{{ course.name }}</option>
+                {% endfor %}
+            </select>
+            <div style="font-size: 0.875rem; color: #64748b; margin-top: 4px;">
+                Assign student to a course/program
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px; margin-top: 32px; flex-wrap: wrap;">
+            <button type="submit" class="btn btn-primary" style="flex: 1; min-width: 200px;">
+                ✓ Add Student
+            </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary" style="flex: 1; min-width: 200px;">
+                ✕ Cancel
+            </a>
+        </div>
+    </form>
+    
+    <!-- Quick Tips -->
+    <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, #e0f2fe, #dbeafe); border-radius: 12px; border-left: 4px solid #3b82f6;">
+        <h4 style="color: #1e40af; margin-bottom: 12px; font-size: 1rem;">💡 Quick Tips</h4>
+        <ul style="font-size: 0.875rem; color: #0369a1; list-style: none; padding: 0;">
+            <li style="margin-bottom: 8px;">✓ Use full name for better identification</li>
+            <li style="margin-bottom: 8px;">✓ Course assignment can be changed later</li>
+            <li style="margin-bottom: 8px;">✓ Attendance and marks can be added after creation</li>
+            <li>✓ All fields are required to ensure data completeness</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Bulk Import Card -->
+<div class="card" style="max-width: 600px; margin: 24px auto 0; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); border: 2px dashed rgba(102, 126, 234, 0.3);">
+    <div style="text-align: center;">
+        <div style="font-size: 3rem; margin-bottom: 16px;">📤</div>
+        <h3 style="margin-bottom: 12px; color: var(--dark);">Bulk Import Students</h3>
+        <p style="color: #64748b; margin-bottom: 20px;">
+            Need to add multiple students at once? Upload a CSV file
+        </p>
+        <button onclick="showBulkImport()" class="btn btn-success">
+            📊 Import from CSV
+        </button>
+        <div style="margin-top: 16px; font-size: 0.875rem; color: #64748b;">
+            Feature coming soon!
+        </div>
+    </div>
+</div>
+
+<!-- Recently Added Students -->
+<div class="card" style="max-width: 600px; margin: 24px auto 0;">
+    <div class="card-header">
+        <h2>👥 Recently Added Students</h2>
+        <p class="card-subtitle">Your latest additions</p>
+    </div>
+    <div id="recentStudents">
+        <div style="text-align: center; padding: 40px; color: #64748b;">
+            <div style="font-size: 3rem; margin-bottom: 12px;">📝</div>
+            <p>New students you add will appear here</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+const form = document.getElementById('addStudentForm');
+const nameInput = document.getElementById('studentName');
+const courseSelect = document.getElementById('courseSelect');
+
+// Auto-capitalize name
+nameInput.addEventListener('blur', function() {
+    this.value = this.value
+        .toLowerCase()
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+});
+
+// Form validation
+form.addEventListener('submit', function(e) {
+    const name = nameInput.value.trim();
+    const course = courseSelect.value;
+    
+    if (!name) {
+        e.preventDefault();
+        alert('Please enter the student name.');
+        nameInput.focus();
+        return false;
+    }
+    
+    if (name.length < 3) {
+        e.preventDefault();
+        alert('Student name must be at least 3 characters long.');
+        nameInput.focus();
+        return false;
+    }
+    
+    if (!course) {
+        e.preventDefault();
+        alert('Please select a course.');
+        courseSelect.focus();
+        return false;
+    }
+    
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ Adding Student...';
+});
+
+// Character counter for name
+nameInput.addEventListener('input', function() {
+    const length = this.value.length;
+    let counter = document.getElementById('charCounter');
+    
+    if (!counter) {
+        counter = document.createElement('div');
+        counter.id = 'charCounter';
+        counter.style.fontSize = '0.75rem';
+        counter.style.color = '#64748b';
+        counter.style.marginTop = '4px';
+        this.parentElement.appendChild(counter);
+    }
+    
+    counter.textContent = `${length} characters`;
+    
+    if (length < 3) {
+        counter.style.color = '#ef4444';
+    } else if (length > 50) {
+        counter.style.color = '#f59e0b';
+    } else {
+        counter.style.color = '#10b981';
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Alt + N to focus on name input
+    if (e.altKey && e.key === 'n') {
+        e.preventDefault();
+        nameInput.focus();
+    }
+    
+    // Alt + C to focus on course select
+    if (e.altKey && e.key === 'c') {
+        e.preventDefault();
+        courseSelect.focus();
+    }
+    
+    // Ctrl + Enter to submit form
+    if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        form.submit();
+    }
+});
+
+// Show keyboard shortcuts hint
+const keyboardHints = document.createElement('div');
+keyboardHints.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: white; padding: 12px 16px; border-radius: 8px; font-size: 0.75rem; z-index: 100;';
+keyboardHints.innerHTML = `
+    <strong>Keyboard Shortcuts:</strong><br>
+    Alt + N: Focus Name<br>
+    Alt + C: Focus Course<br>
+    Ctrl + Enter: Submit
+`;
+document.body.appendChild(keyboardHints);
+
+// Hide hints after 5 seconds
+setTimeout(() => {
+    keyboardHints.style.opacity = '0';
+    keyboardHints.style.transition = 'opacity 0.3s';
+    setTimeout(() => keyboardHints.remove(), 300);
+}, 5000);
+
+function showBulkImport() {
+    alert('Bulk import feature coming soon!\n\nYou\'ll be able to:\n• Upload CSV files with student data\n• Map columns to fields\n• Import hundreds of students at once\n• Validate data before import');
+}
+
+// Load recently added students from localStorage (mock data for now)
+window.addEventListener('load', function() {
+    const recentDiv = document.getElementById('recentStudents');
+    const recentStudents = JSON.parse(localStorage.getItem('recentStudents') || '[]');
+    
+    if (recentStudents.length > 0) {
+        let html = '<div style="display: grid; gap: 12px;">';
+        recentStudents.slice(0, 5).forEach(student => {
+            html += `
+                <div style="display: flex; align-items: center; gap: 12px; padding: 16px; background: linear-gradient(135deg, #f8fafc, #f1f5f9); border-radius: 12px; border-left: 4px solid var(--primary);">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--gradient-1); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.2rem;">
+                        ${student.name[0]}
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--dark);">${student.name}</div>
+                        <div style="font-size: 0.875rem; color: #64748b;">${student.course}</div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #94a3b8;">
+                        ${student.time}
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        recentDiv.innerHTML = html;
+    }
+});
+
+// Save to recent students on form submit (for demo purposes)
+form.addEventListener('submit', function() {
+    const name = nameInput.value.trim();
+    const courseId = courseSelect.value;
+    const courseName = courseSelect.options[courseSelect.selectedIndex].text;
+    
+    const recentStudents = JSON.parse(localStorage.getItem('recentStudents') || '[]');
+    recentStudents.unshift({
+        name: name,
+        course: courseName,
+        time: 'Just now'
+    });
+    
+    // Keep only last 10
+    if (recentStudents.length > 10) {
+        recentStudents.pop();
+    }
+    
+    localStorage.setItem('recentStudents', JSON.stringify(recentStudents));
+});
+</script>
+{% endblock %}

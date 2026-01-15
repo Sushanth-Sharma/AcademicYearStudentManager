@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Student Management Portal{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="empty-state">
+        <div class="empty-icon">⚠️</div>
+        <h2>Oops! Something went wrong</h2>
+        <p style="color: #64748b; font-size: 1.1rem; margin: 20px 0;">
+            {{ error or "An unexpected error occurred. Please try again." }}
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 30px;">
+            <a href="{{ url_for('dashboard') if session.user else url_for('login') }}" class="btn btn-primary">
+                🏠 Go to {{ 'Dashboard' if session.user else 'Login' }}
+            </a>
+            <a href="javascript:history.back()" class="btn btn-secondary">
+                ← Go Back
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
