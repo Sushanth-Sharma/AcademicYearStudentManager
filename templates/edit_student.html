@@ -10,6 +10,7 @@
     </div>
     
     <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div style="margin-bottom: 8px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
                 Student Full Name <span style="color: #ef4444;">*</span>

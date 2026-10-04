@@ -207,12 +207,14 @@
         <a href="{{ url_for('marks_page') }}" class="btn btn-success">
             📊 Add Marks
         </a>
-        <a href="{{ url_for('delete_student', id=student.id) }}" 
-           class="btn" 
-           style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white;"
-           onclick="return confirm('⚠️ Are you sure you want to delete {{ student.name }}?\n\nThis will permanently delete all attendance and marks records!');">
-            🗑️ Delete Student
-        </a>
+        <form method="post" action="{{ url_for('delete_student', id=student.id) }}"
+              style="display:inline;"
+              onsubmit="return confirm('⚠️ Delete this student and all attendance/marks records? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: white;">
+                🗑️ Delete Student
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}
