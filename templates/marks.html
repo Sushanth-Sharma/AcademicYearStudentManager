@@ -170,6 +170,7 @@ async function addMarks() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
             },
             body: JSON.stringify({
                 student_id: parseInt(studentId),

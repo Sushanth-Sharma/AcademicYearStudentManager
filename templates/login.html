@@ -14,6 +14,7 @@
     </div>
     
     <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <div style="margin-bottom: 8px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #334155;">
                 Academic Year / Username
@@ -50,15 +51,6 @@
         <a href="{{ url_for('register') }}" class="btn btn-secondary" style="width: 100%;">
             ✨ Register New Academic Year
         </a>
-    </div>
-    
-    <!-- Quick Login Info -->
-    <div style="margin-top: 32px; padding: 20px; background: linear-gradient(135deg, #e0f2fe, #dbeafe); border-radius: 12px; border-left: 4px solid #3b82f6;">
-        <h4 style="color: #1e40af; margin-bottom: 12px; font-size: 1rem;">💡 Default Login Credentials</h4>
-        <div style="font-size: 0.875rem; color: #0369a1;">
-            <p style="margin-bottom: 8px;"><strong>Username:</strong> 2023, 2024, 2025</p>
-            <p><strong>Password:</strong> 2023pass, 2024pass, 2025pass</p>
-        </div>
     </div>
 </div>
 {% endblock %}

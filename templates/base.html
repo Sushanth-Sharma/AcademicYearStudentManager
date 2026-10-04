@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Student Management Portal{% endblock %}</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
     {% block extra_css %}{% endblock %}
@@ -35,9 +36,12 @@
                 <a href="{{ url_for('analytics_page') }}" class="nav-link {% if request.endpoint == 'analytics_page' %}active{% endif %}">
                     <span class="nav-icon">📈</span> Analytics
                 </a>
-                <a href="{{ url_for('logout') }}" class="nav-link">
-                    <span class="nav-icon">🚪</span> Logout
-                </a>
+                <form method="post" action="{{ url_for('logout') }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit" class="nav-link" style="border:none;background:none;cursor:pointer;">
+                        <span class="nav-icon">🚪</span> Logout
+                    </button>
+                </form>
             </nav>
             <div style="text-align: center; margin-top: 12px; color: #64748b; font-size: 0.9rem;">
                 Logged in as: <strong>{{ session.user }}</strong>
